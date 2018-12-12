@@ -14,7 +14,7 @@ control.o: control.c
 
 clean:
 	rm main control main.o control.o
-	
+
 run:
 	./main
 
