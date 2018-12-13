@@ -37,7 +37,7 @@ int main(int argc, char * argv[]){
     int semd;
     semd = semget(key, 1, IPC_CREAT | IPC_EXCL | 0644);
     if (semd == -1) {
-      printf("The semaphore has already been created.\nPlease run with the '-r' flag to remove this semaphore.\n");
+      printf("The semaphore has already been created.\n");
     }
     else {
       union semun us;
@@ -57,15 +57,15 @@ int main(int argc, char * argv[]){
   else if (strcmp(argument,"-r") == 0){
     int semd = semget(key,1,0);
 
-    printf("Waiting for other users to finish editing...\n\n");
+    printf("Waiting for other users to finish editing...\n");
     while(semctl(semd,0,GETVAL) == 0);
 
-    printf("Removing story...\n\n");
+    printf("Removing story...\n");
     semctl(semd,0,IPC_RMID);
 
     int status = remove("story.txt");
     if (status != 0){
-      printf("Error with removing the story file due to the following cause: %s.\n",strerror(errno));
+      printf("Error with removing the story file due to the following cause\n(most likely because the story has already been removed): %s.\n",strerror(errno));
     }
 
     int shmid = shmget(43212,1024, 0644);
