@@ -10,6 +10,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#define KEY 0x00c0ffee
+#define SHMID 43212
+
 union semun {
   int              val;    /* Value for SETVAL */
   struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
@@ -19,7 +22,6 @@ union semun {
 
 int main(int argc, char * argv[]){
 
-  int key = 0x00c0ffee;
   if (argc < 2){
     printf("You did not enter any arguments.\n");
     exit(0);
@@ -27,22 +29,22 @@ int main(int argc, char * argv[]){
   char * argument = argv[1];
   if (strcmp(argument,"-c") == 0){
     //Create the shared memory
-    shmget(43212,1024, 0644| IPC_CREAT);
+    shmget(SHMID,1024, 0644| IPC_CREAT);
     if (errno){
       printf("The shared memory cannot be created for the following reason: %s\n",strerror(errno));
       exit(1);
     }
     printf("The shared memory has been created!\n");
 
-    int semd;
-    semd = semget(key, 1, IPC_CREAT | IPC_EXCL | 0644);
-    if (semd == -1) {
+    int sem_id;
+    sem_id = semget(KEY, 1, IPC_CREAT | IPC_EXCL | 0644);
+    if (sem_id == -1) {
       printf("The semaphore has already been created.\n");
     }
     else {
       union semun us;
       us.val = 1;
-      semctl(semd, 0, SETVAL, us);
+      semctl(sem_id, 0, SETVAL, us);
       printf("The semaphore has been created!\n");
     }
 
@@ -55,20 +57,20 @@ int main(int argc, char * argv[]){
 
   }
   else if (strcmp(argument,"-r") == 0){
-    int semd = semget(key,1,0);
+int sem_id = semget(KEY,1,0);
 
     printf("Waiting for other users to finish editing...\n");
-    while(semctl(semd,0,GETVAL) == 0);
+    while(semctl(sem_id,0,GETVAL) == 0);
 
     printf("Removing story...\n");
-    semctl(semd,0,IPC_RMID);
+    semctl(sem_id,0,IPC_RMID);
 
     int status = remove("story.txt");
     if (status != 0){
       printf("Error with removing the story file due to the following cause\n(most likely because the story has already been removed): %s.\n",strerror(errno));
     }
 
-    int shmid = shmget(43212,1024, 0644);
+    int shmid = shmget(SHMID,1024, 0644);
     shmctl(shmid, IPC_RMID, NULL);
 
     printf("Removed story.\n");
