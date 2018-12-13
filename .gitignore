@@ -1,3 +1,5 @@
 *.o
 control
 main
+story.txt
+
