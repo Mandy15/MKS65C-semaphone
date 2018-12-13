@@ -79,8 +79,8 @@ int main(int argc, char * argv[]){
 
     char contents[8000000];
     if (read(fd,contents,8000000) < 0){
-      printf("Error with reading the file.\nTry creating the story file first with the '-c' flag.\n\n");
-      exit(1);
+      printf("Error with reading the file.\nTry creating the story file first with the '-c' flag.\n");
+      return 0;
     }
 
     printf("\nFULL STORY HERE\n=========================\n%s",contents);
