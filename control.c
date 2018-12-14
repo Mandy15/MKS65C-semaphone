@@ -57,7 +57,7 @@ int main(int argc, char * argv[]){
 
   }
   else if (strcmp(argument,"-r") == 0){
-int sem_id = semget(KEY,1,0);
+    int sem_id = semget(KEY,1,0);
 
     printf("Waiting for other users to finish editing...\n");
     while(semctl(sem_id,0,GETVAL) == 0);
@@ -65,15 +65,20 @@ int sem_id = semget(KEY,1,0);
     printf("Removing story...\n");
     semctl(sem_id,0,IPC_RMID);
 
-    int status = remove("story.txt");
-    if (status != 0){
-      printf("Error with removing the story file due to the following cause\n(most likely because the story has already been removed): %s.\n",strerror(errno));
+    int fd = open("story.txt", O_RDONLY);
+    char full_story[8000000];
+    int read_status = read(fd, full_story, 8000000);
+    if (read_status == -1) {
+      printf("Can't read story: %s\n", strerror(errno));
+      return 1;
     }
+    printf("\nFULL STORY\n=========================\n%s",full_story);
+
+    remove("story.txt");
 
     int shmid = shmget(SHMID,1024, 0644);
     shmctl(shmid, IPC_RMID, NULL);
 
-    printf("Removed story.\n");
 
   }
   else if (strcmp(argument,"-v") == 0){

@@ -33,30 +33,27 @@ int main(){
 
   int shmid = shmget(SHMID, 1024, 0644);
   if (shmid == -1) {
-    printf("shmget error: %s\n", strerror(errno));
-    return 1;
+    printf("Need to setup first. Try to run `make all setup args=\"-c\"`\n");
+    return 0;
   }
 
-  int * data = shmat(shmid, (void*)0, 0);
+  int * data = (int *)shmat(shmid, (void*)0, 0);
   int length = *data;
 
   int fd = open("story.txt", O_RDONLY);
-  char story[8000000];
-  int read_status = read(fd, story, 8000000);
+  lseek(fd,length,SEEK_END);
+  char last_entry[8000000];
+  int read_status = read(fd, last_entry, 8000000);
   if (read_status == -1) {
     printf("Can't read story: %s\n", strerror(errno));
     return 1;
   }
 
-
-  printf("length:%d, %ld",length,lseek(fd,length,SEEK_END));
-  char * last_input = story + lseek(fd,length,SEEK_END) -2;
-  printf("LAST ENTRY\n====================\n%s\n",last_input);
+  printf("LAST ENTRY\n====================\n%s====================\n",last_entry);
 
   printf("Enter the next sentence in the story:\n");
   char input[100000];
   fgets(input, 100000, stdin);
-  input[strlen(input)] = '\n';
   int new_line_length = strlen(input);
 
   fd = open("story.txt", O_WRONLY | O_APPEND);
@@ -71,8 +68,7 @@ int main(){
   printf("Added new entry to story.\n");
 
   //changing the shared memory
-  new_line_length -= 2;
-  data = &new_line_length;
+  *data = -new_line_length;
 
   //Ups it back
   buf.sem_op = 1;
